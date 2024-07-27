@@ -20,46 +20,68 @@ MCP3008 CS/SHDN to Raspberry Pi GPIO8 (CE0)
 Python Code:
 You'll need the spidev library for SPI communication and the time library for delay.
 
-Install the spidev library:
-
-
-sudo apt-get update
-sudo apt-get install python3-spidev
-Python Script to Read Gas Sensor Data:
-
-
-import spidev
+import RPi.GPIO as GPIO
 import time
 
-# Initialize SPI
-spi = spidev.SpiDev()
-spi.open(0, 0)  # Open SPI bus 0, device (CS) 0
-spi.max_speed_hz = 1350000
+# Set up GPIO mode and warnings
+GPIO.setmode(GPIO.BCM)  # Use Broadcom (BCM) GPIO numbering
+GPIO.setwarnings(False)  # Disable GPIO warnings
 
-# Function to read ADC value from a specific channel
-def read_adc(channel):
-    if channel < 0 or channel > 7:
-        raise ValueError("Channel must be between 0 and 7")
-    # Start with a byte of 1, followed by 7 bits of channel number, then 1 more bit
-    # in a 3-byte frame.
-    r = spi.xfer2([1, (8 + channel) << 4, 0])
-    # The ADC value is in the last 10 bits of the response
-    adc_value = ((r[1] & 3) << 8) + r[2]
-    return adc_value
+# Set up GPIO pins
+GPIO.setup(14, GPIO.IN)  # Set GPIO pin 14 as an input (for button)
+GPIO.setup(12, GPIO.OUT)  # Set GPIO pin 12 as an output (for LED)
+GPIO.setup(12, False)    # Initialize GPIO pin 12 to LOW (turn off LED)
 
-try:
-    while True:
-        # Read from channel 0
-        gas_value = read_adc(0)
-        print(f"Gas Sensor Value: {gas_value}")
-        time.sleep(1)  # Read every second
-except KeyboardInterrupt:
-    print("Program terminated")
-finally:
-    spi.close()
+while True:
+    button_state = GPIO.input(14)  # Read the state of GPIO pin 14 (button)
+    if button_state == False:  # If button is pressed (button_state is LOW)
+        GPIO.output(12, True)  # Turn on the LED (set GPIO pin 12 HIGH)
+        # Wait until the button is released
+        while GPIO.input(14) == False:
+            time.sleep(0.2)  # Sleep for 200 milliseconds
+    else:
+        GPIO.output(12, False)  # Turn off the LED (set GPIO pin 12 LOW)
 Explanation:
-spidev.SpiDev() initializes the SPI device.
-spi.open(0, 0) opens SPI bus 0 and device 0 (CE0).
-spi.max_speed_hz sets the SPI communication speed.
-read_adc(channel) function reads the ADC value from the specified channel.
-The loop continuously reads the sensor value every second and prints it.
+Import Libraries:
+
+
+import RPi.GPIO as GPIO
+import time
+RPi.GPIO: Provides an interface to control the GPIO pins on the Raspberry Pi.
+time: Used for adding delays in the code.
+GPIO Setup:
+
+
+GPIO.setmode(GPIO.BCM)
+GPIO.setwarnings(False)
+GPIO.setmode(GPIO.BCM): Sets the GPIO pin numbering mode to Broadcom (BCM). BCM mode uses the pin numbers based on the Broadcom SOC channel numbers.
+GPIO.setwarnings(False): Disables GPIO warnings that can occur when GPIO pins are used.
+Pin Configuration:
+
+
+GPIO.setup(14, GPIO.IN)
+GPIO.setup(12, GPIO.OUT)
+GPIO.setup(12, False)
+GPIO.setup(14, GPIO.IN): Configures GPIO pin 14 as an input, which is typically connected to a button.
+GPIO.setup(12, GPIO.OUT): Configures GPIO pin 12 as an output, which is connected to an LED.
+GPIO.setup(12, False): Initializes GPIO pin 12 to LOW (False), which means the LED is turned off initially.
+Main Loop:
+
+
+while True:
+    button_state = GPIO.input(14)
+    if button_state == False:
+        GPIO.output(12, True)
+        while GPIO.input(14) == False:
+            time.sleep(0.2)
+    else:
+        GPIO.output(12, False)
+while True:: Creates an infinite loop that continuously checks the button state.
+button_state = GPIO.input(14): Reads the state of the button connected to GPIO pin 14. If the button is pressed, GPIO.input(14) returns False (LOW); if not pressed, it returns True (HIGH).
+if button_state == False:: Checks if the button is pressed.
+GPIO.output(12, True): Turns on the LED connected to GPIO pin 12.
+while GPIO.input(14) == False:: Enters another loop that keeps the LED on while the button is pressed. The time.sleep(0.2) adds a short delay to avoid rapidly toggling the LED due to button bouncing.
+else:: If the button is not pressed.
+GPIO.output(12, False): Turns off the LED.
+Summary:
+The code continuously monitors the state of a button connected to GPIO pin 14. When the button is pressed, it turns on an LED connected to GPIO pin 12. The LED stays on while the button remains pressed and turns off when the button is released. This is achieved using a loop to check the button state and controlling the LED accordingly.
