@@ -85,3 +85,12 @@ else:: If the button is not pressed.
 GPIO.output(12, False): Turns off the LED.
 Summary:
 The code continuously monitors the state of a button connected to GPIO pin 14. When the button is pressed, it turns on an LED connected to GPIO pin 12. The LED stays on while the button remains pressed and turns off when the button is released. This is achieved using a loop to check the button state and controlling the LED accordingly.
+
+https://github.com/user-attachments/assets/2967f2f7-a17b-4f46-87d0-b29dcb40b1cb
+
+![imag1](https://github.com/user-attachments/assets/94a6d61d-07c1-4a90-b005-c0b3d6a27ea2)
+
+![image2](https://github.com/user-attachments/assets/de927bde-9c02-43cc-b70f-97e0b416f910)
+
+![image3](https://github.com/user-attachments/assets/c1802d39-702b-4623-82a7-afc8164d2d7e)
+
